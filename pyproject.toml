@@ -1,0 +1,16 @@
+[project]
+name = "parallact"
+version = "0.1.0"
+description = "ParallACT"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "redis>=8.1.0",          # parallel_*_redis scenarios (message channel)
+    "torch>=2.14.0",         # eval reconciler strategy
+    "transformers>=5.17.0",  # eval reconciler strategy
+    "peft>=0.20.0",          # eval reconciler strategy (LoRA adapter)
+    "datasets",              # prelim_suggestions: SWE-bench Pro download
+]
+
+[tool.uv]
+package = false

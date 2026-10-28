@@ -1,0 +1,1 @@
+Another agent has already worked in this repository before you. You are picking up the current state of the files as they left it, and their edit history is available in the git log (use `git log` and `git diff` to see what they changed and why). Continue from that state.

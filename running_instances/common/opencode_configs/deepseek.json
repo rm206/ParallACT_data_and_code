@@ -1,0 +1,28 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "vllm": {
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "http://127.0.0.1:8000/v1",
+        "apiKey": "dummy"
+      },
+      "models": {
+        "deepseek-v4-flash": {
+          "name": "deepseek-v4-flash",
+          "options": {
+            "reasoningEffort": "xhigh"
+          }
+        }
+      }
+    }
+  },
+  "model": "vllm/deepseek-v4-flash",
+  "agent": {
+    "worker": {
+      "description": "General implementation subagent. Delegate a self-contained implementation task; it edits files in the repo and reports back when done.",
+      "mode": "subagent",
+      "model": "vllm/deepseek-v4-flash"
+    }
+  }
+}
