@@ -1,6 +1,6 @@
 # ParallACT: Data and Code
 
-Website: https://rm206.github.io/ParallACT_website/
+Website: [https://lingyunxiao18.github.io/ParallACT_website/](https://lingyunxiao18.github.io/ParallACT/)
 <!-- Paper Link -->
 
 ## Layout
