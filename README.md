@@ -11,6 +11,15 @@
 
 Coding agents working in shared repositories may receive separate, independently-motivated requests from human developers, creating a set- ting that is multi-agent by necessity. When this scenario happens, their individual implementations may work separately but conflict when combined. To study this setting, we introduce ParallACT, a benchmark of orchestrator-free multi-agent coding tasks. ParallACT contains both complementary and contradictory tasks. In complementary tasks, each agent’s task is separately useful and implementations must share an interface to be productively combined. In contradictory pairs, both agents’ tasks require editing the same code in incompatible ways, and naively combining independent solutions fails to produce a useful implementation. We compare a single-agent oracle given the combined set of tasks against multi-agent settings that vary execution order, visibility, awareness of other agents, and access to a communication channel. We find that the oracle solves most tasks while parallel agents perform substantially worse. Their performance drop is notable for complementary tasks, and particularly sharp for contradictory tasks (e.g., from 62% to 16% for Claude Code with Claude Opus 4.8) where merged code typically satisfies only one specification, and the same gap appears in all six further configurations pairing two agent harnesses with three open-weight models. Simply telling an agent that a peer exists does not help significantly, and giving agents access to a communication channel recovers only a small part of the performance, at an additional token cost. ParallACT thus identifies and isolates a core challenge that will become more common as multi-agent coding by independent principals becomes standard, and provides a controlled test of which coordination strategies help, and at what cost.
 
+<p align="center">
+  <img src="assets/figure-1.png" width="95%" alt="Centralized vs. decentralized assignment of coding tasks">
+</p>
+<p align="center"><em>Left: a central planner splits one request across agents. Right: in ParallACT, separate principals give each agent its own request, and individually valid edits can conflict when combined.</em></p>
+<p align="center">
+  <img src="assets/figure-2.png" width="95%" alt="Task interactions in a shared codebase">
+</p>
+<p align="center"><em>Each agent gets its own requirement on the same repository, and a reconciler combines their edits. Complementary tasks must agree on a shared interface; contradictory tasks edit the same code in incompatible ways.</em></p>
+
 This repository contains the ParallACT dataset and the code used to build, run, and evaluate it.
 
 ## Layout
