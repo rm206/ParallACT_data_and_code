@@ -1,7 +1,17 @@
-# ParallACT: Data and Code
 
-Website: [https://lingyunxiao18.github.io/ParallACT_website/](https://lingyunxiao18.github.io/ParallACT/)
-<!-- Paper Link -->
+<h1 align="center">ParallACT: Decentralized Multi-Agent Coordination and Communication in Shared Codebases</h1>
+
+<p align="center">
+  <a href="https://lingyunxiao18.github.io/ParallACT/"><img src="https://img.shields.io/badge/Project-Page-blue?logo=githubpages" alt="Project Page"></a>
+  <!-- <a href=""><img src="https://img.shields.io/badge/arXiv-Report-red?logo=arxiv" alt="arXiv Report"></a> -->
+  <!-- <a href=""><img src="https://img.shields.io/badge/X-Post-black?logo=x" alt="X Post"></a> -->
+</p>
+
+## Overview
+
+Coding agents working in shared repositories may receive separate, independently-motivated requests from human developers, creating a set- ting that is multi-agent by necessity. When this scenario happens, their individual implementations may work separately but conflict when combined. To study this setting, we introduce ParallACT, a benchmark of orchestrator-free multi-agent coding tasks. ParallACT contains both complementary and contradictory tasks. In complementary tasks, each agent’s task is separately useful and implementations must share an interface to be productively combined. In contradictory pairs, both agents’ tasks require editing the same code in incompatible ways, and naively combining independent solutions fails to produce a useful implementation. We compare a single-agent oracle given the combined set of tasks against multi-agent settings that vary execution order, visibility, awareness of other agents, and access to a communication channel. We find that the oracle solves most tasks while parallel agents perform substantially worse. Their performance drop is notable for complementary tasks, and particularly sharp for contradictory tasks (e.g., from 62% to 16% for Claude Code with Claude Opus 4.8) where merged code typically satisfies only one specification, and the same gap appears in all six further configurations pairing two agent harnesses with three open-weight models. Simply telling an agent that a peer exists does not help significantly, and giving agents access to a communication channel recovers only a small part of the performance, at an additional token cost. ParallACT thus identifies and isolates a core challenge that will become more common as multi-agent coding by independent principals becomes standard, and provides a controlled test of which coordination strategies help, and at what cost.
+
+This repository contains the ParallACT dataset and the code used to build, run, and evaluate it.
 
 ## Layout
 
