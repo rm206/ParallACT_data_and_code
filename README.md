@@ -3,7 +3,7 @@
 
 <p align="center">
   <a href="https://lingyunxiao18.github.io/ParallACT/"><img src="https://img.shields.io/badge/Project-Page-blue?logo=githubpages" alt="Project Page"></a>
-  <!-- <a href=""><img src="https://img.shields.io/badge/arXiv-Report-red?logo=arxiv" alt="arXiv Report"></a> -->
+  <a href="https://arxiv.org/abs/2611.00314"><img src="https://img.shields.io/badge/arXiv-Report-red?logo=arxiv" alt="arXiv Report"></a>
   <!-- <a href=""><img src="https://img.shields.io/badge/X-Post-black?logo=x" alt="X Post"></a> -->
 </p>
 
