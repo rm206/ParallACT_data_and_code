@@ -4,7 +4,15 @@
 <p align="center">
   <a href="https://lingyunxiao18.github.io/ParallACT/"><img src="https://img.shields.io/badge/Project-Page-blue?logo=githubpages" alt="Project Page"></a>
   <a href="https://arxiv.org/abs/2611.00314"><img src="https://img.shields.io/badge/arXiv-Report-red?logo=arxiv" alt="arXiv Report"></a>
-  <!-- <a href=""><img src="https://img.shields.io/badge/X-Post-black?logo=x" alt="X Post"></a> -->
+  <a href="https://x.com/EliasEskin/status/2117659177514357181?a=lhE7hJJNxSDdR4nB_Y8&s=20"><img src="https://img.shields.io/badge/X-Post-black?logo=x" alt="X Post"></a>
+</p>
+
+<p align="center">
+  <a href="https://www.linkedin.com/in/rishabh-mediratta/">Rishabh Mediratta</a>&nbsp;&nbsp;
+  <a href="https://www.linkedin.com/in/lingyun-richard-xiao/">Lingyun Xiao</a>&nbsp;&nbsp;
+  <a href="https://www.cs.utexas.edu/~pstone/">Peter Stone</a>&nbsp;&nbsp;
+  <a href="https://www.joydeepb.com/">Joydeep Biswas</a>&nbsp;&nbsp;
+  <a href="https://esteng.github.io/">Elias Stengel-Eskin</a>
 </p>
 
 ## Overview
@@ -90,3 +98,14 @@ Results go to `eval_outputs/<corpus>/...`, one JSON per scenario plus a
 `summary.json` per harness × model × label × family. See `eval/README.md`.
 
 Build new instances: `prelim_suggestions/README.md`, then `author_new_instances/README.md`.
+
+## Citation
+
+```bibtex
+@article{mediratta2026decentralized,
+  title={Decentralized Multi-Agent Coordination and Communication in Shared Codebases},
+  author={Mediratta, Rishabh and Xiao, Lingyun and Stone, Peter and Biswas, Joydeep and Stengel-Eskin, Elias},
+  journal={arXiv preprint arXiv:2611.00314},
+  year={2026}
+}
+```
